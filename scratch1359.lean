@@ -105,8 +105,8 @@ lemma factorial_7841_mod_7853 : Nat.factorial 7841 % 7853 = 1 := by
 lemma factorial_mul_prod (P q : ℕ) (h : P + 2 ≤ q) :
     (q - 1).factorial = P.factorial * (∏ i ∈ Icc (P + 1) (q - 2), i) * (q - 1) := by
   have h1 : (q - 1).factorial = ∏ i ∈ Ico 1 q, i := by
-    rw [← Finset.prod_Ico_id_eq_factorial (q - 1)]
-    exact congrArg (Finset.Ico 1) (by omega)
+    rw [← Finset.prod_Ico_id_eq_factorial (q - 1),
+      show (q - 1) + 1 = q from by omega]
   have hs : ∏ i ∈ Ico 1 q, i
       = (∏ i ∈ Ico 1 (P + 1), i) * (∏ i ∈ Ico (P + 1) q, i) :=
     (Finset.prod_Ico_consecutive (fun i => i)
@@ -117,6 +117,7 @@ lemma factorial_mul_prod (P q : ℕ) (h : P + 2 ≤ q) :
         ∏ i ∈ Ico (P + 1) (b + 1), i = (∏ i ∈ Icc (P + 1) (b - 1), i) * b := by
       intro b hb
       rw [Finset.prod_Ico_succ_top hb]
+      congr 1
       refine Finset.prod_congr (Finset.ext fun x => ?_) fun x _ => rfl
       simp only [Finset.mem_Ico, Finset.mem_Icc]
       omega
@@ -137,6 +138,7 @@ lemma factorial_mul_prod_congr_one {P q : ℕ} (hq : q.Prime) (h : P + 2 ≤ q) 
       have hsum : ((q - 1) + 1 : ℕ) = q := by omega
       rw [hsum]
       exact ZMod.natCast_eq_zero_iff q q |>.mpr (Nat.dvd_refl q)
+    rw [Nat.cast_add] at hqe
     exact (eq_neg_of_add_eq_zero_left hqe).symm
   rw [factorial_mul_prod P q h] at h1
   have hsq : (q - 1) * (q - 1) ≡ 1 [MOD q] := by
@@ -239,7 +241,8 @@ lemma conjecture_unfolded (k : ℕ) (hk : k > 1) :
               (Nat.nth Nat.Prime (k - 1) + 2 - 2) = ∅ :=
             Finset.Icc_eq_empty_iff.mpr (by omega)
           rw [hIcc]
-          simp
+          simp only [Finset.prod_empty]
+          exact Nat.ModEq.rfl
         exact hkey.mpr hWemp
       · exact absurd h991 hk991
       · exact hkey.mpr hW1
