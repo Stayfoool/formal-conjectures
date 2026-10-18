@@ -74,15 +74,15 @@ theorem a_4 : a 4 = 17 := by
   simp_all[a]
   exact (congr_arg _ (by constructor) ).trans (Nat.nth_count (by decide))
 
-set_option maxRecDepth 100000 in
 /-- `7841` is prime. -/
 lemma prime_7841 : Nat.Prime 7841 := by native_decide
 
-set_option maxRecDepth 100000 in
 /-- There are `990` primes below `7841`. -/
 lemma count_7841 : Nat.count Nat.Prime 7841 = 990 := by native_decide
 
-set_option maxRecDepth 100000 in
+/-- `7853` is prime. -/
+lemma prime_7853 : Nat.Prime 7853 := by native_decide
+
 /-- There are `991` primes below `7853`. -/
 lemma count_7853 : Nat.count Nat.Prime 7853 = 991 := by native_decide
 
@@ -94,9 +94,8 @@ lemma nth_prime_990_eq_7841 : Nat.nth Nat.Prime 990 = 7841 := by
 /-- The `992`-nd prime is `7853`. -/
 lemma nth_prime_991_eq_7853 : Nat.nth Nat.Prime 991 = 7853 := by
   rw [← count_7853]
-  exact Nat.nth_count (by decide)
+  exact Nat.nth_count prime_7853
 
-set_option maxRecDepth 100000 in
 /-- The exceptional congruence `7841! ≡ 1 (mod 7853)`. -/
 lemma factorial_7841_mod_7853 : Nat.factorial 7841 % 7853 = 1 := by
   native_decide
@@ -110,17 +109,20 @@ lemma factorial_mul_prod (P q : ℕ) (h : P + 2 ≤ q) :
     exact congrArg (Finset.Ico 1) (by omega)
   have hs : ∏ i ∈ Ico 1 q, i
       = (∏ i ∈ Ico 1 (P + 1), i) * (∏ i ∈ Ico (P + 1) q, i) :=
-    Finset.prod_Ico_consecutive (fun i => i) (by omega) (by omega)
+    (Finset.prod_Ico_consecutive (fun i => i)
+      (by omega : (1 : ℕ) ≤ P + 1) (by omega : (P + 1 : ℕ) ≤ q)).symm
   rw [h1, hs, Finset.prod_Ico_id_eq_factorial P]
   have h3 : ∏ i ∈ Ico (P + 1) q, i = (∏ i ∈ Icc (P + 1) (q - 2), i) * (q - 1) := by
-    have hq1 : q = (q - 1) + 1 := by omega
-    rw [hq1, Finset.prod_Ico_succ_top (show P + 1 ≤ q - 1 by omega)]
-    have hconv : ∏ i ∈ Ico (P + 1) (q - 1), i = ∏ i ∈ Icc (P + 1) (q - 2), i := by
+    have key : ∀ b : ℕ, P + 1 ≤ b →
+        ∏ i ∈ Ico (P + 1) (b + 1), i = (∏ i ∈ Icc (P + 1) (b - 1), i) * b := by
+      intro b hb
+      rw [Finset.prod_Ico_succ_top hb]
       refine Finset.prod_congr (Finset.ext fun x => ?_) fun x _ => rfl
       simp only [Finset.mem_Ico, Finset.mem_Icc]
       omega
-    rw [hconv]
-    ring
+    have hq1 : q = (q - 1) + 1 := by omega
+    rw [hq1]
+    exact key (q - 1) (by omega)
   rw [h3]
   ring
 
@@ -134,7 +136,7 @@ lemma factorial_mul_prod_congr_one {P q : ℕ} (hq : q.Prime) (h : P + 2 ≤ q) 
     have hqe : (((q - 1) + 1 : ℕ) : ZMod q) = 0 := by
       have hsum : ((q - 1) + 1 : ℕ) = q := by omega
       rw [hsum]
-      exact ZMod.natCast_eq_zero_iff q q |>.mpr Nat.dvd_refl
+      exact ZMod.natCast_eq_zero_iff q q |>.mpr (Nat.dvd_refl q)
     exact (eq_neg_of_add_eq_zero_left hqe).symm
   rw [factorial_mul_prod P q h] at h1
   have hsq : (q - 1) * (q - 1) ≡ 1 [MOD q] := by
@@ -146,7 +148,9 @@ lemma factorial_mul_prod_congr_one {P q : ℕ} (hq : q.Prime) (h : P + 2 ≤ q) 
     ring
   have h2 := h1.mul_right (q - 1)
   rw [Nat.mul_assoc] at h2
-  exact (hsq.symm.mul_left _).trans (h2.trans hsq)
+  have h4 := hsq.symm.mul_left (P.factorial * (∏ i ∈ Icc (P + 1) (q - 2), i))
+  rw [Nat.mul_one] at h4
+  exact h4.trans (h2.trans hsq)
 
 /-- The central equivalence: for a prime `q` and `P + 2 ≤ q`,
 `P! ≡ 1 (mod q) ↔ (∏ i ∈ [P+1, q-2], i) ≡ 1 (mod q)`. -/
@@ -207,7 +211,8 @@ lemma conjecture_unfolded (k : ℕ) (hk : k > 1) :
       have hjle := hle j hj
       omega
     exact hisleast.2 hmem
-  have hkey := congr_one_iff_prod_one hq (by omega)
+  have hkey := congr_one_iff_prod_one
+    (P := Nat.nth Nat.Prime (k - 1)) (q := Nat.nth Nat.Prime k) hq (by omega)
   by_cases hk991 : k = 991
   · subst hk991
     rw [nth_prime_990_eq_7841, nth_prime_991_eq_7853]
