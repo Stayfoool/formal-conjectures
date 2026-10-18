@@ -51,80 +51,73 @@ noncomputable def a (n : ℕ) : ℕ :=
     0
 
 /-- Value of the sequence `a` at 0. -/
-@[category test, AMS 11]
 theorem a_0 : a 0 = 0 := by rfl
 
 /-- Value of the sequence `a` at 1. -/
-@[category test, AMS 11]
 theorem a_1 : a 1 = 3 := by
   norm_num[a]
   exact(((congr_arg _) (by constructor) )).trans.comp (3).nth_count (by decide)
 
 /-- Value of the sequence `a` at 2. -/
-@[category test, AMS 11]
 theorem a_2 : a 2 = 5 := by
   delta a
   apply((congr_arg _) (by constructor) ).trans (Nat.nth_count (by decide ) )
 
 /-- Value of the sequence `a` at 3. -/
-@[category test, AMS 11]
 theorem a_3 : a 3 = 11 := by
   (inhabit ℝ)
   norm_num[a]
   exact (congr_arg _ (by decide)).trans (Nat.nth_count (by decide))
 
 /-- Value of the sequence `a` at 4. -/
-@[category test, AMS 11]
 theorem a_4 : a 4 = 17 := by
   simp_all[a]
   exact (congr_arg _ (by constructor) ).trans (Nat.nth_count (by decide))
 
+set_option maxRecDepth 100000 in
 /-- `7841` is prime. -/
-@[category test, AMS 11]
-lemma prime_7841 : Nat.Prime 7841 := by decide
+lemma prime_7841 : Nat.Prime 7841 := by native_decide
 
+set_option maxRecDepth 100000 in
 /-- There are `990` primes below `7841`. -/
-@[category test, AMS 11]
 lemma count_7841 : Nat.count Nat.Prime 7841 = 990 := by native_decide
 
+set_option maxRecDepth 100000 in
 /-- There are `991` primes below `7853`. -/
-@[category test, AMS 11]
 lemma count_7853 : Nat.count Nat.Prime 7853 = 991 := by native_decide
 
 /-- The `991`-st prime is `7841`. -/
-@[category test, AMS 11]
 lemma nth_prime_990_eq_7841 : Nat.nth Nat.Prime 990 = 7841 := by
   rw [← count_7841]
   exact Nat.nth_count prime_7841
 
 /-- The `992`-nd prime is `7853`. -/
-@[category test, AMS 11]
 lemma nth_prime_991_eq_7853 : Nat.nth Nat.Prime 991 = 7853 := by
   rw [← count_7853]
   exact Nat.nth_count (by decide)
 
+set_option maxRecDepth 100000 in
 /-- The exceptional congruence `7841! ≡ 1 (mod 7853)`. -/
-@[category test, AMS 11]
 lemma factorial_7841_mod_7853 : Nat.factorial 7841 % 7853 = 1 := by
   native_decide
 
 /-- Splitting the factorial: for `P + 2 ≤ q`,
 `(q-1)! = P! * (∏ i ∈ [P+1, q-2], i) * (q-1)`. -/
-@[category API, AMS 11]
 lemma factorial_mul_prod (P q : ℕ) (h : P + 2 ≤ q) :
     (q - 1).factorial = P.factorial * (∏ i ∈ Icc (P + 1) (q - 2), i) * (q - 1) := by
   have h1 : (q - 1).factorial = ∏ i ∈ Ico 1 q, i := by
     rw [← Finset.prod_Ico_id_eq_factorial (q - 1)]
-    simp only [Finset.Ico.injEq]
-    omega
-  rw [h1, Finset.prod_Ico_consecutive (fun i => i) (by omega) (by omega),
-    Finset.prod_Ico_id_eq_factorial P]
+    exact congrArg (Finset.Ico 1) (by omega)
+  have hs : ∏ i ∈ Ico 1 q, i
+      = (∏ i ∈ Ico 1 (P + 1), i) * (∏ i ∈ Ico (P + 1) q, i) :=
+    Finset.prod_Ico_consecutive (fun i => i) (by omega) (by omega)
+  rw [h1, hs, Finset.prod_Ico_id_eq_factorial P]
   have h3 : ∏ i ∈ Ico (P + 1) q, i = (∏ i ∈ Icc (P + 1) (q - 2), i) * (q - 1) := by
     have hq1 : q = (q - 1) + 1 := by omega
     rw [hq1, Finset.prod_Ico_succ_top (show P + 1 ≤ q - 1 by omega)]
     have hconv : ∏ i ∈ Ico (P + 1) (q - 1), i = ∏ i ∈ Icc (P + 1) (q - 2), i := by
-      rw [← Finset.Ico_succ_right (P + 1) (q - 2)]
-      congr 1
+      refine Finset.prod_congr (Finset.ext fun x => ?_) fun x _ => rfl
+      simp only [Finset.mem_Ico, Finset.mem_Icc]
       omega
     rw [hconv]
     ring
@@ -133,52 +126,52 @@ lemma factorial_mul_prod (P q : ℕ) (h : P + 2 ≤ q) :
 
 /-- **Wilson bridge**: for a prime `q` and `P + 2 ≤ q`,
 `P! * (∏ i ∈ [P+1, q-2], i) ≡ 1 (mod q)`. -/
-@[category API, AMS 11]
 lemma factorial_mul_prod_congr_one {P q : ℕ} (hq : q.Prime) (h : P + 2 ≤ q) :
     P.factorial * (∏ i ∈ Icc (P + 1) (q - 2), i) ≡ 1 [MOD q] := by
   have hfact : Fact q.Prime := ⟨hq⟩
   have h1 : (q - 1).factorial ≡ q - 1 [MOD q] := by
     rw [← ZMod.natCast_eq_natCast_iff, ZMod.wilsons_lemma]
-    have hqe : ((q - 1 : ℕ) : ZMod q) + 1 = 0 := by
+    have hqe : (((q - 1) + 1 : ℕ) : ZMod q) = 0 := by
       have hsum : ((q - 1) + 1 : ℕ) = q := by omega
-      rw [Nat.cast_add, hsum, ZMod.natCast_self_eq_zero]
-    exact eq_neg_of_add_eq_zero_left hqe
+      rw [hsum]
+      exact ZMod.natCast_eq_zero_iff q q |>.mpr Nat.dvd_refl
+    exact (eq_neg_of_add_eq_zero_left hqe).symm
   rw [factorial_mul_prod P q h] at h1
   have hsq : (q - 1) * (q - 1) ≡ 1 [MOD q] := by
     obtain ⟨r, hr⟩ : ∃ r, q = r + 2 := ⟨q - 2, by omega⟩
     subst hr
     rw [Nat.modEq_iff_dvd]
-    refine ⟨r, ?_⟩
+    refine ⟨-r, ?_⟩
     push_cast
     ring
   have h2 := h1.mul_right (q - 1)
-  have h3 := hsq.symm.mul_left (P.factorial * (∏ i ∈ Icc (P + 1) (q - 2), i))
-  exact h3.trans (h2.trans hsq)
+  rw [Nat.mul_assoc] at h2
+  exact (hsq.symm.mul_left _).trans (h2.trans hsq)
 
 /-- The central equivalence: for a prime `q` and `P + 2 ≤ q`,
 `P! ≡ 1 (mod q) ↔ (∏ i ∈ [P+1, q-2], i) ≡ 1 (mod q)`. -/
-@[category API, AMS 11]
 lemma congr_one_iff_prod_one {P q : ℕ} (hq : q.Prime) (h : P + 2 ≤ q) :
     P.factorial ≡ 1 [MOD q] ↔ ((∏ i ∈ Icc (P + 1) (q - 2), i) ≡ 1 [MOD q]) := by
   have hbrid := factorial_mul_prod_congr_one hq h
   constructor
   · intro hP1
-    exact (hP1.mul_right _).symm.trans hbrid
+    have h := hP1.mul_right (∏ i ∈ Icc (P + 1) (q - 2), i)
+    rw [Nat.one_mul] at h
+    exact h.symm.trans hbrid
   · intro hW
-    exact (hW.mul_left _).symm.trans hbrid
+    have h := hW.mul_left P.factorial
+    rw [Nat.mul_one] at h
+    exact h.symm.trans hbrid
 
 /-- Unfolded restatement of the characterization. -/
-@[category API, AMS 11]
 lemma conjecture_unfolded (k : ℕ) (hk : k > 1) :
     (Nat.nth Nat.Prime (k - 1)).factorial ≡ 1 [MOD Nat.nth Nat.Prime k] ↔
       ((Nat.nth Nat.Prime (k - 1) + 2).Prime ∨ k = 991 ∨
         (Nat.nth Nat.Prime k - Nat.nth Nat.Prime (k - 1) > 2 ∧
           (∏ i ∈ Finset.Icc (Nat.nth Nat.Prime (k - 1) + 1)
             (Nat.nth Nat.Prime k - 2), i) ≡ 1 [MOD Nat.nth Nat.Prime k])) := by
-  have hinf : (Set.ofPred Nat.Prime).Infinite := by
-    refine Set.Infinite.of_forall_exists_gt fun z => ?_
-    obtain ⟨p, hp1, hp2⟩ := Nat.exists_infinite_primes (z + 1)
-    exact ⟨p, hp2, by omega⟩
+  have hinf : (Set.ofPred Nat.Prime).Infinite := fun hf =>
+    Nat.not_bddAbove_setOfPred_prime (Set.Finite.bddAbove hf)
   have hP : (Nat.nth Nat.Prime (k - 1)).Prime := Nat.nth_mem_of_infinite hinf (k - 1)
   have hq : (Nat.nth Nat.Prime k).Prime := Nat.nth_mem_of_infinite hinf k
   have hPge3 : 3 ≤ Nat.nth Nat.Prime (k - 1) := by
@@ -209,9 +202,11 @@ lemma conjecture_unfolded (k : ℕ) (hk : k > 1) :
       intro j hj
       exact (Nat.nth_le_nth hinf).mpr (by omega)
     have hisleast := Nat.isLeast_nth_of_infinite (p := Nat.Prime) hinf k
-    refine hisleast.2 ⟨m, hm, fun j hj => ?_⟩
-    have hjle := hle j hj
-    omega
+    have hmem : m ∈ {x : ℕ | Nat.Prime x ∧ ∀ j < k, Nat.nth Nat.Prime j < m} := by
+      refine ⟨hm, fun j hj => ?_⟩
+      have hjle := hle j hj
+      omega
+    exact hisleast.2 hmem
   have hkey := congr_one_iff_prod_one hq (by omega)
   by_cases hk991 : k = 991
   · subst hk991
@@ -228,21 +223,20 @@ lemma conjecture_unfolded (k : ℕ) (hk : k > 1) :
         exact hqeq ▸ hq
       · refine Or.inr (Or.inr ⟨?_, hW⟩)
         omega
-    · rintro (htwin | hk | ⟨hgt, hW1⟩)
-      · exfalso
-        exact hk991 hk
+    · rintro (htwin | h991 | ⟨hgt, hW1⟩)
       · have hqeq : Nat.nth Nat.Prime k = Nat.nth Nat.Prime (k - 1) + 2 := by
-          have hle : Nat.nth Nat.Prime k ≤ Nat.nth Nat.Prime (k - 1) + 2 :=
-            hmin (Nat.nth Nat.Prime (k - 1) + 2) htwin (by omega)
+          have hle := hmin (Nat.nth Nat.Prime (k - 1) + 2) htwin (by omega)
           omega
         have hWemp : (∏ i ∈ Finset.Icc (Nat.nth Nat.Prime (k - 1) + 1)
             (Nat.nth Nat.Prime k - 2), i) ≡ 1 [MOD Nat.nth Nat.Prime k] := by
           rw [hqeq]
-          simp only [Nat.add_sub_cancel]
-          rw [Finset.Icc_eq_empty_iff]
-          · simp
-          · omega
+          have hIcc : Icc (Nat.nth Nat.Prime (k - 1) + 1)
+              (Nat.nth Nat.Prime (k - 1) + 2 - 2) = ∅ :=
+            Finset.Icc_eq_empty_iff.mpr (by omega)
+          rw [hIcc]
+          simp
         exact hkey.mpr hWemp
+      · exact absurd h991 hk991
       · exact hkey.mpr hW1
 
 /--
@@ -257,7 +251,6 @@ empty-product case $q = P + 2$, and the single further content is the finite
 fact $7841! \equiv 1 \pmod{7853}$ (equivalently $7853 \mid 11! - 1$) at the
 exceptional index $k = 991$.
 -/
-@[category research solved, AMS 11]
 theorem conjecture (k : ℕ) (hk : k > 1) :
     let Pk := Nat.nth Nat.Prime (k - 1)
     let Pk_succ := Nat.nth Nat.Prime k
