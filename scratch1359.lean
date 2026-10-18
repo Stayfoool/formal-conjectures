@@ -269,3 +269,5 @@ theorem conjecture (k : ℕ) (hk : k > 1) :
   conjecture_unfolded k hk
 
 end OeisA1359
+
+#print axioms OeisA1359.conjecture
