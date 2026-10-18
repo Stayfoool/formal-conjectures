@@ -160,7 +160,7 @@ lemma factorial_mul_prod_congr_one {P q : ℕ} (hq : q.Prime) (h : P + 2 ≤ q) 
       have hsum : ((q - 1) + 1 : ℕ) = q := by omega
       rw [hsum]
       exact ZMod.natCast_eq_zero_iff q q |>.mpr (Nat.dvd_refl q)
-    rw [Nat.cast_add] at hqe
+    rw [Nat.cast_add, Nat.cast_one] at hqe
     exact (eq_neg_of_add_eq_zero_left hqe).symm
   rw [factorial_mul_prod P q h] at h1
   have hsq : (q - 1) * (q - 1) ≡ 1 [MOD q] := by
