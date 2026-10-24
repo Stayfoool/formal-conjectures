@@ -130,7 +130,6 @@ The proof is the classical one: five edges out of a vertex force three of one co
 (pigeonhole), and the 5-cycle coloring shows that five vertices do not suffice. -/
 
 /-- Three pairwise distinct, pairwise adjacent vertices form a clique. -/
-/-- Helper for `ramsey_number_three_three`. -/
 @[category API, AMS 5]
 lemma isClique_triple {α : Type*} [DecidableEq α] {G : SimpleGraph α} {x y z : α}
     (hxy : x ≠ y) (hxz : x ≠ z)
@@ -150,7 +149,6 @@ lemma isClique_triple {α : Type*} [DecidableEq α] {G : SimpleGraph α} {x y z 
   · exact absurd rfl hne
 
 /-- The 5-cycle and its complement are both triangle-free. -/
-/-- Helper for `ramsey_number_three_three`. -/
 @[category API, AMS 5]
 lemma cycleGraph_five_triangleFree :
     (SimpleGraph.cycleGraph 5).CliqueFree 3 ∧ ((SimpleGraph.cycleGraph 5)ᶜ).CliqueFree 3 := by
@@ -161,7 +159,6 @@ lemma cycleGraph_five_triangleFree :
     decide
 
 /-- A triangle `{v, x, y}` in `G`, built from a vertex and two of its neighbors. -/
-/-- Helper for `ramsey_number_three_three`. -/
 @[category API, AMS 5]
 lemma not_cliqueFree_of_triangle {G : SimpleGraph (Fin 6)} {v x y : Fin 6}
     (hvx : v ≠ x) (hvy : v ≠ y) (hxy : x ≠ y)
@@ -172,7 +169,6 @@ lemma not_cliqueFree_of_triangle {G : SimpleGraph (Fin 6)} {v x y : Fin 6}
     Finset.card_eq_three.mpr ⟨v, x, y, hvx, hvy, hxy, rfl⟩⟩
 
 /-- A triangle `{v, x, y}` in the complement. -/
-/-- Helper for `ramsey_number_three_three`. -/
 @[category API, AMS 5]
 lemma not_cliqueFree_of_compl_triangle {G : SimpleGraph (Fin 6)} {v x y : Fin 6}
     (hvx : v ≠ x) (hvy : v ≠ y) (hxy : x ≠ y)
@@ -186,7 +182,6 @@ lemma not_cliqueFree_of_compl_triangle {G : SimpleGraph (Fin 6)} {v x y : Fin 6}
     Finset.card_eq_three.mpr ⟨v, x, y, hvx, hvy, hxy, rfl⟩⟩
 
 /-- Pigeonhole: three pairwise distinct neighbors of `v` force a triangle in `G` or in `Gᶜ`. -/
-/-- Helper for `ramsey_number_three_three`. -/
 @[category API, AMS 5]
 lemma three_neighbors_fan {G : SimpleGraph (Fin 6)} {v a b c : Fin 6}
     (hab : a ≠ b) (hac : a ≠ c) (hbc : b ≠ c)
@@ -208,7 +203,6 @@ lemma three_neighbors_fan {G : SimpleGraph (Fin 6)} {v a b c : Fin 6}
       Finset.card_eq_three.mpr ⟨a, b, c, hab, hac, hbc, rfl⟩⟩)
 
 /-- Every graph on six vertices contains a triangle or an independent set of size three. -/
-/-- Helper for `ramsey_number_three_three`. -/
 @[category API, AMS 5]
 lemma isGraphRamsey_six : IsGraphRamsey 6 3 3 := by
   classical
